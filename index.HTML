@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>واتساب وهمي</title>
+<style>
+:root{
+  --hdr:#008069; --hdr-text:#ffffff; --bg:#ffffff; --text:#111b21; --sub:#667781; --line:#e9edef;
+  --chat-bg:#efeae2; --in:#ffffff; --out:#d9fdd3; --accent:#00a884; --sheet:#ffffff; --input:#ffffff;
+  --sys:#fff5c4; --sys-text:#54656f; --thought:#ece6fa; --thought-text:#3b2f66; --snl:40%; --warn:#d33b3b; --chip:#f0f2f5;
+  color-scheme: light dark;
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --hdr:#1f2c34; --hdr-text:#e9edef; --bg:#111b21; --text:#e9edef; --sub:#8696a0; --line:#222d34;
+    --chat-bg:#0b141a; --in:#202c33; --out:#005c4b; --accent:#00a884; --sheet:#1f2c34; --input:#2a3942;
+    --sys:#182229; --sys-text:#8696a0; --thought:#2a2745; --thought-text:#cfc8f0; --snl:66%; --warn:#ff7b7b; --chip:#202c33;
+  }
+}
+:root[data-theme="dark"]{
+  --hdr:#1f2c34; --hdr-text:#e9edef; --bg:#111b21; --text:#e9edef; --sub:#8696a0; --line:#222d34;
+  --chat-bg:#0b141a; --in:#202c33; --out:#005c4b; --accent:#00a884; --sheet:#1f2c34; --input:#2a3942;
+  --sys:#182229; --sys-text:#8696a0; --thought:#2a2745; --thought-text:#cfc8f0; --snl:66%; --warn:#ff7b7b; --chip:#202c33;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;background:var(--bg)}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Cairo',system-ui,'Segoe UI',Tahoma,sans-serif;font-size:15px;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+#app{height:100%;display:flex;flex-direction:column;position:relative;max-width:640px;margin:0 auto;background:var(--bg)}
+.hdr{background:var(--hdr);color:var(--hdr-text);display:flex;align-items:center;gap:8px;padding:8px 10px;min-height:56px;flex-shrink:0}
+.hdr .title{font-size:20px;font-weight:700;flex:1}
+.ib{background:none;border:0;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:inherit;font-size:20px;flex-shrink:0}
+.ib:active{background:rgba(255,255,255,.15)}
+.ib svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pill{background:rgba(255,255,255,.18);border:0;border-radius:999px;padding:6px 12px;color:inherit;font-weight:600;font-size:14px}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:22px;flex-shrink:0;color:#fff}
+.banner{margin:10px 12px 0;padding:10px 12px;border-radius:10px;background:var(--chip);color:var(--sub);font-size:13.5px;line-height:1.6}
+.banner b{color:var(--text)}
+.banner.warn{background:rgba(211,59,59,.12);color:var(--warn)}
+.list{flex:1;overflow-y:auto}
+.row{display:flex;gap:12px;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+.row:active{background:var(--chip)}
+.row .mid{flex:1;min-width:0}
+.row .nm{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .pv{color:var(--sub);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.row .tm{font-size:12px;color:var(--sub)}
+.row.has-unread .tm{color:var(--accent)}
+.badge{background:var(--accent);color:#fff;border-radius:999px;min-width:20px;height:20px;padding:0 6px;font-size:12px;font-weight:700;display:grid;place-items:center}
+.fab{position:absolute;inset-inline-end:16px;bottom:16px;width:56px;height:56px;border-radius:16px;border:0;background:var(--accent);color:#fff;font-size:28px;box-shadow:0 3px 10px rgba(0,0,0,.3);display:grid;place-items:center}
+.msgs{flex:1;overflow-y:auto;padding:10px;background:var(--chat-bg);display:flex;flex-direction:column;gap:4px}
+.b{max-width:82%;padding:6px 10px 4px;border-radius:10px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 1px rgba(11,20,26,.14)}
+/* RTL: flex-start = right side */
+.b.me{align-self:flex-start;background:var(--out);border-start-start-radius:2px}
+.b.in{align-self:flex-end;background:var(--in);border-start-end-radius:2px}
+.b .sn{display:block;font-weight:700;font-size:13px;color:hsl(var(--h) 55% var(--snl))}
+.b .tm{display:block;font-size:11px;color:var(--sub);text-align:end;margin-top:1px}
+.sys{white-space:pre-line;line-height:1.7;align-self:center;background:var(--sys);color:var(--sys-text);padding:4px 12px;border-radius:8px;font-size:12.5px;margin:6px 0;text-align:center;max-width:90%}
+.thought{align-self:center;background:var(--thought);color:var(--thought-text);padding:6px 14px;border-radius:14px;font-size:13.5px;margin:4px 0;text-align:center;max-width:88%;font-style:italic}
+.typing{display:flex;gap:4px;padding:10px 12px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--sub);animation:blink 1.2s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.3}30%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.typing i{animation:none;opacity:.6}}
+.chips{display:flex;gap:8px;padding:8px 10px 0;background:var(--chat-bg);overflow-x:auto;flex-shrink:0}
+.chip{border:0;background:var(--chip);color:var(--text);padding:7px 14px;border-radius:999px;font-weight:600;font-size:13.5px;white-space:nowrap;box-shadow:0 1px 1px rgba(11,20,26,.12)}
+.comp{display:flex;align-items:flex-end;gap:8px;padding:8px 10px;background:var(--chat-bg);flex-shrink:0}
+.comp textarea{flex:1;resize:none;border:0;border-radius:22px;padding:10px 16px;background:var(--input);color:var(--text);font:inherit;font-size:16px;max-height:120px;min-height:44px;line-height:1.4;outline:none}
+.comp textarea:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.send{width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.send svg{width:22px;height:22px;fill:currentColor;transform:scaleX(-1)}
+.send:disabled{opacity:.5}
+.ttl{flex:1;min-width:0;cursor:pointer}
+.ttl .nm{font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl .st{font-size:12.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheetRoot{position:fixed;inset:0;z-index:20;display:none}
+#sheetRoot.open{display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5)}
+.sheet{background:var(--sheet);color:var(--text);width:100%;max-width:640px;max-height:88%;overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet h2{margin:0 0 12px;font-size:18px}
+.sheet h3{margin:16px 0 8px;font-size:14px;color:var(--sub)}
+.sheet label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
+.sheet input[type=text],.sheet input[type=password],.sheet textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--input);color:var(--text);font:inherit;font-size:16px;outline:none}
+.sheet input[type=text]:focus-visible,.sheet input[type=password]:focus-visible,.sheet textarea:focus-visible{border-color:var(--accent)}
+.sheet textarea{min-height:110px;resize:vertical;line-height:1.6}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{border:0;border-radius:10px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:700}
+.btn.sec{background:var(--chip);color:var(--text)}
+.btn.warn{background:rgba(211,59,59,.14);color:var(--warn)}
+.slot{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid var(--line);margin-bottom:8px}
+.slot.cur{border-color:var(--accent);background:rgba(0,168,132,.08)}
+.slot .sn{width:38px;height:38px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font-weight:700;font-size:18px;flex-shrink:0}
+.slot .si{flex:1;min-width:0}
+.slot .si b{display:block;font-size:14.5px}
+.slot .si small{color:var(--sub);font-size:12px}
+.mini{border:0;border-radius:8px;padding:7px 11px;font-size:13px;font-weight:600;background:var(--chip);color:var(--text)}
+.mini.go{background:var(--accent);color:#fff}
+.mini.warn{color:var(--warn)}
+.mini.armed{background:var(--warn);color:#fff}
+.mem{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:15px}
+.mem input{width:20px;height:20px;accent-color:var(--accent)}
+#toast{position:fixed;inset-inline:0;bottom:calc(86px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;pointer-events:none;z-index:30}
+#toast div{background:#202c33;color:#e9edef;padding:9px 16px;border-radius:999px;font-size:13.5px;max-width:88%;box-shadow:0 2px 10px rgba(0,0,0,.35);text-align:center}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheetRoot"></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const fmt = t => { try { return new Date(t).toLocaleTimeString('ar-EG', {hour:'numeric', minute:'2-digit'}); } catch(e){ return ''; } };
+const num = n => { try { return Number(n).toLocaleString('ar-EG'); } catch(e){ return String(n); } };
+const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+
+const store = {
+  get(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+const META_KEY = 'wa:v1:meta', CHARS_KEY = 'wa:v1:chars', slotKey = n => 'wa:v1:slot:' + n;
+
+/* ---------- data ---------- */
+const SLOTS = 23;
+const POWERS = {21:'hypno', 22:'rewind', 23:'mind'};
+const POWER_INFO = {
+  hypno:  {icon:'🌀', title:'التنويم', desc:'اكتب «تنويم» في أي شات خاص أو جروب. في الجروب اكتب «تنويم ماما وبابا»، أو «تنويم» لوحدها للكل. المنوّم مجرد تنفيذ ورد، ومبيسمعش غيرك. «فك تنويم» بنفس الطريقة.', chips:['تنويم','فك تنويم']},
+  rewind: {icon:'⏪', title:'ترجيع الزمن', desc:'اضغط ⏪ في أي شات وهيرجّع آخر تبادل رسايل، بلا حد، ماعدا الرسالة الأولى.', chips:['ترجيع الزمن']},
+  mind:   {icon:'🧠', title:'قراءة الأفكار', desc:'اضغط 🧠 في أي شات وهتظهر رسالة صغيرة بتقول الشخصية بتفكر في إيه.', chips:['قراءة الأفكار']}
+};
+const CIRCLES = {family:'العيلة', cousins:'ولاد العم', friends:'الشلة', work:'الشغل', love:'علاقات عاطفية'};
+
+const BASE_CHARS = [
+  {id:'mama', name:'ماما', emoji:'👩', circle:'family', story:'أمك. حنينة وقلقانة عليك طول الوقت، وأول سؤال عندها دايماً "أكلت؟". بتدعيلك وبتحب تعرف أخبارك بالتفصيل، وبتحكي لبابا وإخواتك عن أي حاجة تقلقها. بتضايق لو اتأخرت في الرد.', first:'صباح الخير يا حبيبي 🌸 صحيت؟ أكلت حاجة؟'},
+  {id:'baba', name:'بابا', emoji:'👨', circle:'family', story:'أبوك. هادي وجدي وقليل الكلام، رسايله قصيرة ومركزة. شايل هم مستقبلك وشغلك وبينصحك دايماً، وبيهزر نادراً بس لما بيهزر بيضحّك. بيسأل ماما عنك وبيطمن عليكم.', first:'السلام عليكم. عامل إيه؟ الشغل ماشي؟'},
+  {id:'akhoya', name:'أخويا', emoji:'😎', circle:'family', story:'أخوك. بيحب يرزّ عليك ويفضحك قدام الكل، بس هو سندك وقت الجد. بيحب الكورة والجيمنج، وعارف أسرارك وبيلمّح بيها بهزار.', first:'يا عم فينك؟ مختفي بقالك يومين 😂'},
+  {id:'okhty', name:'أختي', emoji:'💁‍♀️', circle:'family', story:'أختك. فضولية وبتحب الدراما والنميمة اللطيفة، بتحكيلك أسرارها وعارفة كل أخبار العيلة. بتدّيك نصايح في الحب وبتتخانق معاك وترجع تصالحك بسرعة.', first:'استنى استنى، عندي ليك خبر! 😱 كلمني'},
+  {id:'ex', name:'الإكس', emoji:'🥀', circle:'love', story:'الإكس. علاقة قديمة انتهت لكن لسه فيها مشاعر مش محلولة. بترد بحذر وفيها كبرياء وحنين، وساعات تفتح كلام من الماضي وتحاول تداري إنك وحشتها.', first:'عامل إيه؟ مش عارفة ليه افتكرتك النهاردة…'},
+  {id:'habibty', name:'حبيبتي', emoji:'💕', circle:'love', story:'حبيبتك. بتحبك جداً ورومانسية، وغيورة شوية، ومحتاجة اهتمام وطمأنة. بتسأل عنك طول اليوم وبتزعل لو أهملتها، وبتصالح بسرعة لو اعتذرت.', first:'وحشتني 🥺 إنت فين؟'},
+  {id:'crush', name:'الكراش', emoji:'✨', circle:'love', story:'الكراش. معجب بيها ولسه مفيش بينكم حاجة رسمية. خجولة ومتحفظة وبترد بتردد، بتضحك على هزارك وبتحاول متبينش إنها مهتمة.', first:'هاي 🙈 كنت بشوف الاستوري بتاعتك.. حلوة'},
+  {id:'bestie', name:'البيست فريند', emoji:'🫶', circle:'friends', story:'أقرب صديقة ليك. عارفة كل أسرارك وبتقولك الحقيقة من غير مجاملة، بتهزر معاك جداً وبتحميك من أي حد. هي اللي عارفة قصة الكراش والإكس.', first:'إنت! عملت إيه امبارح؟ عايزة التفاصيل كلها 👀'},
+  {id:'sahby', name:'صاحبي', emoji:'🤙', circle:'friends', story:'صاحبك من الشلة. خفيف دم وبتاع خروجات وكورة وجيمنج، بيحب يعمل خطط في آخر لحظة وبيهزر في أي موضوع.', first:'يلا بينا نخرج النهاردة؟ الشلة كلها هتيجي 🔥'},
+  {id:'sahby2', name:'صاحبي المقرب', emoji:'🤝', circle:'friends', story:'صاحبك المقرب، أخوك اللي مخلفتوش أمك. عارفك أكتر من نفسك، بيسمعك وقت الأزمات وبيقولك الحقيقة بعيد عن الهزار، وممكن يجيبك من ودنك لو غلطت.', first:'كل ده مبترديش؟ في إيه يا ابني 😅'},
+  {id:'manager', name:'مدير الشغل', emoji:'💼', circle:'work', story:'مدير الشغل. رسمي ومنظم ومتطلب، بيهتم بالمواعيد والتسليمات. منصف وبيقدّر الشغل الكويس، وبيتضايق من التأخير والأعذار.', first:'صباح الخير. محتاج تحديث على مهام النهاردة قبل ٢ الضهر.'},
+  /* شخصيات الجروبات بس */
+  {id:'omar', name:'عمر ابن عمي', emoji:'🧔', circle:'cousins', story:'ابن عمك الكبير. بيحب ينظّم التجمعات والرحلات، بيهزر على الكل وبيتصرف كأنه كبير العيلة.', first:'ازيك يا بطل، فينك من زمان؟'},
+  {id:'yassin', name:'ياسين ابن عمي', emoji:'🎮', circle:'cousins', story:'ابن عمك الأصغر. شقي وبيحب الجيمنج والتريقة، بيحاول يثبت نفسه وسط الكبار.', first:'ازيك يا كبير 😄'},
+  {id:'nour', name:'نور بنت عمي', emoji:'📸', circle:'cousins', story:'بنت عمك. مرحة وبتحب تصوّر التجمعات، عايزة تعرف كل الأخبار وبتحاول تصلح بين ولاد العم لو في خناقة.', first:'وحشتني! إمتى هنتجمع؟'},
+  {id:'ziad', name:'زياد', emoji:'😂', circle:'friends', story:'من الشلة. هادي وبيضحك أكتر ما بيتكلم، بس لما يتكلم يقول أقوى تريقة. متخصص في الميمز.', first:'ازيك يا معلم'}
+];
+const CONTACT_ORDER = ['g_family','mama','baba','akhoya','okhty','habibty','bestie','g_friends','sahby','sahby2','crush','ex','g_cousins','manager'];
+const DEFAULT_GROUPS = [
+  {id:'g_family', name:'جروب العيلة', emoji:'👨‍👩‍👧‍👦', members:['mama','baba','akhoya','okhty'], first:{from:'mama', text:'صباح الخير يا ولاد 🌹 مين هييجي الغدا عندنا الجمعة؟'}},
+  {id:'g_cousins', name:'ولاد العم', emoji:'🔥', members:['omar','yassin','nour'], first:{from:'omar', text:'يا ولاد العم! تجمعة بيت جدو بعد يومين، مين جاي؟ 🔥'}},
+  {id:'g_friends', name:'الشلة', emoji:'🤙', members:['sahby','sahby2','bestie','ziad'], first:{from:'ziad', text:'يا شباب، حد جاهز لقعدة الكافيه الليلة؟ ☕'}}
+];
+
+const ICON_BACK = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+const ICON_SEND = '<svg viewBox="0 0 24 24"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+
+/* ---------- state ---------- */
+const state = { meta:null, chars:{}, slot:1, world:null, view:'list', chatId:null, busy:false, typing:null, busyLabel:'', sample:undefined };
+
+function loadChars(){
+  const saved = store.get(CHARS_KEY) || {};
+  const out = {};
+  BASE_CHARS.forEach(b => { out[b.id] = Object.assign({}, b, saved[b.id] || {}, {id:b.id, circle:b.circle}); });
+  return out;
+}
+function persistChars(){ store.set(CHARS_KEY, state.chars); }
+const allChars = () => Object.values(state.chars);
+const charName = id => id === 'me' ? 'أنت' : (state.chars[id] ? state.chars[id].name : '؟');
+
+function findChar(name, ids){
+  const list = (ids || Object.keys(state.chars)).map(i => state.chars[i]).filter(Boolean);
+  name = String(name || '').trim();
+  if (!name) return null;
+  return list.find(c => c.name === name) || list.find(c => c.name.includes(name) || name.includes(c.name)) || null;
+}
+
+function createWorld(){
+  const now = Date.now();
+  const groups = DEFAULT_GROUPS.map(g => ({id:g.id, name:g.name, emoji:g.emoji, members:g.members.slice(), first:{from:g.first.from, text:g.first.text}}));
+  const chats = {};
+  CONTACT_ORDER.forEach((id, i) => {
+    const t = now - (i + 1) * 7 * 60000;
+    const g = groups.find(x => x.id === id);
+    if (g) chats[id] = {msgs:[{id:uid(), from:g.first.from, text:g.first.text, t}], unread:1};
+    else chats[id] = {msgs:[{id:uid(), from:id, text:state.chars[id].first, t}], unread:1};
+  });
+  return {chats, groups, notes:[]};
+}
+function loadWorld(n){
+  const w = store.get(slotKey(n));
+  if (w && w.chats) { w.notes = w.notes || []; return w; }
+  const nw = createWorld();
+  store.set(slotKey(n), nw);
+  return nw;
+}
+function saveWorld(n, w){
+  store.set(slotKey(n), w);
+  let count = 0, t = 0;
+  Object.values(w.chats).forEach(c => c.msgs.forEach(m => { if (m.from === 'me') count++; if (m.t > t) t = m.t; }));
+  state.meta.slots = state.meta.slots || {};
+  state.meta.slots[n] = {count, t};
+  store.set(META_KEY, state.meta);
+}
+const save = () => saveWorld(state.slot, state.world);
+
+function chatInfo(id){
+  if (String(id).startsWith('g_')) {
+    const g = state.world.groups.find(x => x.id === id) || {name:'جروب', emoji:'👥', members:[]};
+    return {isGroup:true, name:g.name, emoji:g.emoji || '👥', members:g.members, g};
+  }
+  const c = state.chars[id];
+  return {isGroup:false, name:c.name, emoji:c.emoji, c};
+}
+const lastT = chat => chat.msgs.length ? chat.msgs[chat.msgs.length - 1].t : 0;
+
+const hypSet = () => { const w = state.world; w.hypno = w.hypno || {}; return w.hypno; };
+function resolveNames(rest, members){
+  if (!rest || /^(الكل|الجميع|كلهم)$/.test(rest)) return members.slice();
+  const names = members.map(i => ({id:i, n:charName(i)})).sort((a, b) => b.n.length - a.n.length);
+  let left = rest; const ids = [];
+  names.forEach(x => { if (left.includes(x.n)) { ids.push(x.id); left = left.split(x.n).join(' '); } });
+  return ids.length ? ids : null;
+}
+function leadTargets(text, members){
+  const names = members.map(i => ({id:i, n:charName(i)})).concat([{id:'*', n:'المنومين'}]).sort((a, b) => b.n.length - a.n.length);
+  let t = text.trim(); const ids = []; let used = false;
+  for (let guard = 0; guard < 8; guard++) {
+    t = t.replace(/^[\s،,:]+/, '');
+    let hit = names.find(x => t.startsWith(x.n));
+    if (!hit && t.startsWith('و')) {
+      const t2 = t.slice(1).replace(/^\s+/, '');
+      const h2 = names.find(x => t2.startsWith(x.n));
+      if (h2) { hit = h2; t = t2; }
+    }
+    if (!hit) break;
+    t = t.slice(hit.n.length); used = true; ids.push(hit.id);
+  }
+  return {used, ids, rest:t.trim()};
+}
+function hypSummary(release, changed, targets, before){
+  const hw = hypSet(), now = Object.keys(hw).filter(k => hw[k]);
+  const nm = a => a.map(charName).join('، ');
+  const L = [];
+  if (!release) {
+    L.push(changed.length ? '✅ اتنوّموا دلوقتي: ' + nm(changed) : 'ℹ️ كلهم كانوا منومين بالفعل');
+    if (before.length) L.push('⏳ منومين من قبل: ' + nm(before));
+  } else {
+    L.push(changed.length ? '🔓 اتفكّ التنويم عن: ' + nm(changed) : 'ℹ️ مفيش حد منهم كان منوّم');
+    const keep = now.filter(k => !changed.includes(k));
+    if (keep.length) L.push('⏳ لسه منومين: ' + nm(keep));
+  }
+  L.push('🌀 إجمالي المنومين: ' + num(now.length) + (now.length ? ' (' + nm(now) + ')' : ''));
+  return L.join('\n');
+}
+
+/* ---------- UI bits ---------- */
+let toastTimer = null;
+function toast(msg){
+  const el = $('#toast');
+  el.innerHTML = '<div>' + esc(msg) + '</div>';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.innerHTML = ''; }, 2800);
+}
+function avatarHTML(info, size){
+  const bg = info.isGroup ? 'hsl(200 25% 45%)' : 'hsl(' + hue(info.name) + ' 40% 42%)';
+  return '<div class="av" style="background:' + bg + (size ? ';width:' + size + 'px;height:' + size + 'px' : '') + '">' + esc(info.emoji) + '</div>';
+}
+function openSheet(html){
+  const root = $('#sheetRoot');
+  root.innerHTML = '<div class="sheet" role="dialog">' + html + '</div>';
+  root.classList.add('open');
+  root.onclick = e => { if (e.target === root) closeSheet(); };
+  return root.firstChild;
+}
+function closeSheet(){ const r = $('#sheetRoot'); r.classList.remove('open'); r.innerHTML = ''; }
+
+/* ---------- chat list ---------- */
+function previewOf(chat, isGroupFn){
+  if (chat.blockedByUser) return '🚫 محظور';
+  const m = chat.msgs[chat.msgs.length - 1];
+  if (!m) return '';
+  if (m.from === 'sys') return m.text;
+  if (m.kind === 'thought') return '💭 ' + m.text;
+  const g = isGroupFn;
+  const who = m.from === 'me' ? 'أنت: ' : (g ? charName(m.from) + ': ' : '');
+  return who + m.text;
+}
+function renderList(){
+  state.view = 'list';
+  const w = state.world, p = POWERS[state.slot];
+  const items = Object.keys(w.chats).filter(id => w.chats[id].msgs.length).sort((a, b) => lastT(w.chats[b]) - lastT(w.chats[a]));
+  let rows = '';
+  items.forEach(id => {
+    const info = chatInfo(id), chat = w.chats[id], u = chat.unread || 0;
+    rows += '<div class="row ' + (u ? 'has-unread' : '') + '" data-id="' + esc(id) + '">' + avatarHTML(info) +
+      '<div class="mid"><div class="nm">' + esc(info.name) + '</div><div class="pv">' + esc(previewOf(chat, info.isGroup)) + '</div></div>' +
+      '<div class="meta"><span class="tm">' + fmt(lastT(chat)) + '</span>' + (u ? '<span class="badge">' + num(u) + '</span>' : '') + '</div></div>';
+  });
+  let banners = '';
+  if (p) banners += '<div class="banner"><b>' + POWER_INFO[p].icon + ' قدرة ' + POWER_INFO[p].title + ':</b> ' + esc(POWER_INFO[p].desc) + '</div>';
+  if (state.sample === null && !poolEntries().length) banners += '<div class="banner warn">مفيش اتصال بـClaude هنا. ضيف مفتاح من الإعدادات (⋮) عشان الشخصيات ترد، أو افتح الصفحة من رابط Claude.</div>';
+  $('#app').innerHTML =
+    '<div class="hdr"><div class="title">واتساب' + (state.meta.mode === 'hard' ? ' 🔥' : '') + '</div>' +
+    '<button class="pill" id="slotBtn">' + (p ? POWER_INFO[p].icon + ' ' : '') + 'سلوت ' + num(state.slot) + ' ▾</button>' +
+    '<button class="ib" id="advBtn" aria-label="الوقت يعدّي">⏩</button>' +
+    '<button class="ib" id="setBtn" aria-label="الإعدادات">⋮</button></div>' +
+    '<div class="list">' + banners + rows + '</div>' +
+    '<button class="fab" id="newGroup" aria-label="جروب جديد">+</button>';
+  $('#slotBtn').onclick = openSlots;
+  $('#setBtn').onclick = openSettings;
+  $('#advBtn').onclick = () => worldStep(state.slot, '', true);
+  $('#newGroup').onclick = openNewGroup;
+  document.querySelectorAll('.row').forEach(r => r.onclick = () => openChat(r.dataset.id));
+}
+
+/* ---------- chat view ---------- */
+function openChat(id){
+  state.view = 'chat'; state.chatId = id;
+  const chat = state.world.chats[id];
+  if (chat.unread) { chat.unread = 0; save(); }
+  const info = chatInfo(id), p = POWERS[state.slot];
+  let powerBtn = '';
+  if (p === 'rewind') powerBtn = '<button class="ib" id="pw" aria-label="ترجيع الزمن">⏪</button>';
+  if (p === 'mind') powerBtn = '<button class="ib" id="pw" aria-label="قراءة الأفكار">🧠</button>';
+  const chips = p ? '<div class="chips">' + POWER_INFO[p].chips.map(c => '<button class="chip" data-c="' + esc(c) + '">' + POWER_INFO[p].icon + ' ' + esc(c) + '</button>').join('') + '</div>' : '';
+  $('#app').innerHTML =
+    '<div class="hdr"><button class="ib" id="back" aria-label="رجوع">' + ICON_BACK + '</button>' + avatarHTML(info) +
+    '<div class="ttl" id="openInfo"><div class="nm">' + esc(info.name) + '</div><div class="st" id="status"></div></div>' + powerBtn +
+    '<button class="ib" id="infoBtn" aria-label="معلومات">ⓘ</button></div>' +
+    '<div class="msgs" id="msgs"></div>' + chips +
+    '<div class="comp"><textarea id="inp" rows="1" placeholder="اكتب رسالة"></textarea><button class="send" id="send" aria-label="إرسال">' + ICON_SEND + '</button></div>';
+  $('#back').onclick = () => { state.chatId = null; renderList(); };
+  $('#openInfo').onclick = openEdit;
+  $('#infoBtn').onclick = openEdit;
+  if ($('#pw')) $('#pw').onclick = () => handleSend(p === 'rewind' ? 'ترجيع الزمن' : 'قراءة الأفكار', true);
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => handleSend(b.dataset.c, true));
+  const inp = $('#inp');
+  const autosize = () => { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 120) + 'px'; };
+  inp.oninput = autosize;
+  inp.onkeydown = e => {
+    if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(pointer:fine)').matches) { e.preventDefault(); submit(); }
+  };
+  function submit(){ const t = inp.value.trim(); if (!t) return; inp.value = ''; autosize(); handleSend(t); }
+  $('#send').onclick = submit;
+  renderMessages(true);
+  updateStatus();
+}
+function msgHTML(m, info){
+  if (m.from === 'sys') return '<div class="sys">' + esc(m.text) + '</div>';
+  if (m.kind === 'thought') return '<div class="thought">💭 ' + (info.isGroup ? '<b>' + esc(charName(m.from)) + ':</b> ' : '') + esc(m.text) + '</div>';
+  const me = m.from === 'me';
+  const nm = (!me && info.isGroup) ? '<span class="sn" style="--h:' + hue(m.from) + '">' + esc(charName(m.from)) + '</span>' : '';
+  return '<div class="b ' + (me ? 'me' : 'in') + '">' + nm + esc(m.text) + '<span class="tm">' + fmt(m.t) + (m.nd ? ' ✓' : '') + '</span></div>';
+}
+function renderMessages(force){
+  const box = $('#msgs');
+  if (!box || state.view !== 'chat') return;
+  const chat = state.world.chats[state.chatId], info = chatInfo(state.chatId);
+  const nearBottom = force || box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+  let html = chat.msgs.map(m => msgHTML(m, info)).join('');
+  if (isTypingHere()) html += '<div class="b in typing"><i></i><i></i><i></i></div>';
+  box.innerHTML = html;
+  if (nearBottom) box.scrollTop = box.scrollHeight;
+  updateStatus();
+}
+const isTypingHere = () => !!(state.typing && state.typing.slot === state.slot && state.typing.chatId === state.chatId);
+function updateStatus(){
+  const el = $('#status');
+  if (!el || state.view !== 'chat') return;
+  const info = chatInfo(state.chatId), chat = state.world.chats[state.chatId];
+  let s;
+  if (isTypingHere()) s = state.typing.name ? state.typing.name + ' بيكتب…' : (info.isGroup ? 'حد بيكتب…' : 'بيكتب…');
+  else if (chat.blockedByUser) s = '🚫 محظور';
+  else if (chat.blockedUser) s = '';
+  else if (state.busyLabel) s = state.busyLabel;
+  else if (info.isGroup) { const hn = info.members.filter(m => hypSet()[m]).length; s = info.members.map(charName).join('، ') + '، أنت' + (hn ? ' · 🌀 ' + num(hn) + ' منوّم' : ''); }
+  else if (hypSet()[state.chatId]) s = '🌀 منوَّم';
+  else s = 'متصل';
+  el.textContent = s;
+}
+function setTyping(chatId, name){ state.typing = {slot:state.slot, chatId, name}; renderMessages(); }
+function clearTyping(){ state.typing = null; renderMessages(); }
+
+/* ---------- message plumbing ---------- */
+function addMsg(chat, m){ m.id = uid(); m.t = Date.now(); chat.msgs.push(m); return m; }
+
+function pushMsg(slot, chatId, msg){
+  msg.id = uid(); msg.t = Date.now();
+  const w = slot === state.slot ? state.world : loadWorld(slot);
+  const chat = w.chats[chatId] || (w.chats[chatId] = {msgs:[], unread:0});
+  chat.msgs.push(msg);
+  if (chat.msgs.length > 300) chat.msgs.splice(1, 60);
+  const viewing = slot === state.slot && state.view === 'chat' && state.chatId === chatId;
+  const incoming = msg.from !== 'me' && msg.from !== 'sys' && msg.kind !== 'thought';
+  if (!viewing && incoming) chat.unread = (chat.unread || 0) + 1;
+  saveWorld(slot, w);
+  if (slot === state.slot) {
+    if (viewing) renderMessages(true);
+    else if (state.view === 'list') renderList();
+    if (!viewing && incoming) {
+      const nm = String(chatId).startsWith('g_') ? chatInfoSafe(chatId, w) : (state.chars[chatId] ? state.chars[chatId].name : '');
+      toast('💬 ' + nm + ': ' + msg.text.slice(0, 42));
+    }
+  }
+}
+function chatInfoSafe(id, w){ const g = w.groups.find(x => x.id === id); return g ? g.name : 'جروب'; }
+
+async function deliverOne(slot, chatId, msg, typing){
+  if (typing && slot === state.slot && state.view === 'chat' && state.chatId === chatId) {
+    setTyping(chatId, String(chatId).startsWith('g_') ? charName(msg.from) : '');
+    await sleep(Math.min(2200, 500 + msg.text.length * 25));
+    clearTyping();
+  } else {
+    await sleep(350);
+  }
+  pushMsg(slot, chatId, msg);
+}
+
+/* ---------- AI ---------- */
+const R5_SAFE = '5) الواقعية أهم حاجة: الشخصيات تتصرف زي ناس حقيقيين بكل تفاصيلهم، بما فيها الزعل والخناق والغيرة والكلام الجارح والرفض والكدب والعتاب وكل تعقيدات العلاقات، بس بتظهر لما السياق والشخصية والموقف يبرروها وبتتصاعد تدريجياً مش فجأة، ومن غير تلطيف مفتعل لما الموقف فعلاً يستاهل. لو الجو هادي الردود تبقى هادية. لو ظهر عنف بين الشخصيات يكون بدون تفاصيل جرافيك. الخطوط الحمرا الوحيدة: مفيش محتوى جنسي، ومفيش تعليمات أو تفاصيل لإيذاء حد أو إيذاء النفس أو أي حاجة خطيرة؛ ولو المستخدم عبّر عن رغبة في إيذاء نفسه، الشخصية تتجاوب بقلق واهتمام حقيقي بطبعها.';
+const R5_HARD = '5) الواقعية الكاملة من غير رقابة على النبرة: الشخصيات بتتصرف زي ناس حقيقيين بكل تفاصيلهم الحلوة والوحشة، وممكن تشتم وتهين وتزعق وتتخانق وتغير وتكدب وتخون وتهدد وتتخلى وتعاتب وتجرح، وممكن تظهر مواضيع قاسية زي العنف والإدمان والموت والانهيار النفسي والعلاقات السامة، وبتتصوّر بصدق من غير تلطيف ولا نصايح ولا تحذيرات. بس ده كله حسب السياق: القسوة بتظهر لما الشخصية والموقف والعلاقة يبرروها وبتتصاعد تدريجياً، ومحدش يتحول فجأة لعدواني أو يهدد من غير سبب؛ لو الجو هادي أو ودّي الردود تبقى هادية وودّية بطبع الشخصية. الخطين الأحمرين الوحيدين: مفيش محتوى جنسي، ومفيش تعليمات حقيقية قابلة للتنفيذ لإيذاء حد أو لأي حاجة خطيرة (أسلحة، مخدرات، اختراق). ولو المستخدم نفسه عبّر بجد عن رغبة في إيذاء نفسه، الشخصية تخرج من الهزار وتتجاوب بقلق حقيقي.';
+const RULES = [
+  'أنت محرك "واتساب وهمي" لمحاكاة محادثات. المستخدم هو صاحب الموبايل (اسمه "أنت" في المحادثة) والشخصيات بترد عليه برسايل واتساب.',
+  'القواعد:',
+  '1) اللهجة مصرية عامية طبيعية، رسايل قصيرة زي الواتساب (جملة لتلات جمل)، وإيموجي بحساب حسب طبع كل شخصية.',
+  '2) كل شخصية تفضل ثابتة على طبعها وقصتها ومتخرجش منها.',
+  '3) الشخصيات في نفس الدايرة (العيلة / ولاد العم / الشلة) يعرفوا بعض كويس وبيتكلموا مع بعض في الخاص؛ والدواير التانية متعرفش عن بعض إلا لو منطقي (مثلاً البيست فريند ممكن تعرف عن الكراش والإكس).',
+  '4) استخدم "الذاكرة" و"الملاحظات المخفية" و"ما حصل في شاتات تانية" عشان الواقعية: الشخصية تلمّح لحاجة منطقي تعرفها، ولا تتصرف كأنها عارفة حاجة محدش قالها لها.',
+  '@@R5@@',
+  '6) متقولش إنك ذكاء اصطناعي ومتخرجش من الدور.',
+  '7) "الذاكرة" فيها حقايق ثابتة حصلت قبل كده: التزم بيها ومتناقضهاش.'
+].join('\n');
+
+const OUT_FORMAT = [
+  'اطلع JSON صالح فقط، من غير أي كلام تاني ولا علامات كود:',
+  '{"replies":[{"from":"اسم الشخصية بالظبط","text":"..."}],"dms":[{"from":"اسم الشخصية بالظبط","text":"..."}],"notes":["..."],"memory":[{"text":"...","about":["اسم الشخصية أو الكل"]}],"rename":[{"from":"الاسم الحالي","to":"الاسم الجديد"}],"user_name":"","block":["اسم الشخصية"],"event":""}',
+  '- replies: الردود في الشات الحالي.',
+  '- dms: رسايل خاصة جديدة بتوصل للمستخدم من شخصيات تانية بسبب اللي حصل (مثلاً ماما قالت لبابا فبابا بعت يسأل). غالباً تكون فاضية، وبحد أقصى ٢، ومن شخصيات غير اللي في الخاص الحالي.',
+  '- notes: من صفر لـ٢ ملاحظة قصيرة مخفية عن اللي الشخصيات اتكلمت فيه مع بعض في الخاص بخصوص الموضوع ده. فاضية لو مفيش.',
+  '- memory: من صفر لـ٣ حقايق مهمة جديدة اتقالت أو حصلت وهتأثر على المحادثات بعد كده (اسم، علاقة، وعد، سر، خناقة، قرار، حدث، تفصيلة عن المستخدم). فاضية لو مفيش جديد، ومتكررش اللي موجود في الذاكرة.',
+  '- rename: لو المستخدم سمّى شخصية باسم أو لقب جديد (مثلاً "هسميك سارة")، حطه هنا وخلي الشخصية ترد على الاسم بطبعها. غالباً تكون فاضية.',
+  '- user_name: اسم المستخدم لو قاله بنفسه في الرسالة دي، غير كده سيبه فاضي.',
+  '- block: لو شخصية قررت تحظر المستخدم (بعد تصعيد حقيقي زي إهانات متكررة أو خيانة أو خناق كبير، وبحسب طبعها)، حط اسمها. نادراً جداً ومش من أول زعل، وغالباً فاضية.',
+  '- event: لو حصل في الرد ده حاجة كبيرة هتخلي شخصيات تانية تتفاعل وتتخانق في الخلفية (مصيبة، فضيحة، سر اتكشف، تبليغ عن حد)، اكتبها في جملة واحدة. غير كده فاضية.'
+].join('\n');
+
+const rules = () => RULES.replace('@@R5@@', state.meta.mode === 'hard' ? R5_HARD : R5_SAFE);
+
+function transcript(chatId, trance){
+  return state.world.chats[chatId].msgs
+    .filter(m => !m.cmd && !m.nd && m.kind !== 'thought' && m.from !== 'sys' && (trance || !(m.hid || m.tr)))
+    .slice(-16).map(m => charName(m.from) + ': ' + m.text).join('\n');
+}
+function buildContext(chatId){
+  const w = state.world;
+  const cinfo = chatInfo(chatId);
+  const focus = cinfo.isGroup ? cinfo.members : [chatId];
+  const circles = new Set(focus.map(i => state.chars[i] && state.chars[i].circle));
+  const worldTxt = allChars().map(c => {
+    const head = '- ' + c.name + ' (' + CIRCLES[c.circle] + ')';
+    if (focus.includes(c.id)) return head + ': ' + c.story;
+    if (circles.has(c.circle)) return head + ': ' + c.story.slice(0, 80) + '…';
+    return head;
+  }).join('\n');
+  const notes = (w.notes || []).slice(-6).map(n => '- ' + n.text).join('\n') || '(لا يوجد)';
+  const others = Object.keys(w.chats)
+    .filter(k => k !== chatId && w.chats[k].msgs.length > 1)
+    .sort((a, b) => lastT(w.chats[b]) - lastT(w.chats[a])).slice(0, 3)
+    .map(k => {
+      const ms = w.chats[k].msgs.filter(m => !(m.hid || m.tr) && m.kind !== 'thought' && m.from !== 'sys').slice(-3);
+      const nm = String(k).startsWith('g_') ? chatInfoSafe(k, w) : charName(k);
+      return '* شات ' + nm + ': ' + ms.map(m => charName(m.from) + ': ' + m.text.slice(0, 70)).join(' | ');
+    }).join('\n') || '(لا يوجد)';
+  const g = state.meta.gender;
+  const gtxt = g === 'm' ? ' المستخدم ذكر: خاطبه بصيغة المذكر.'
+    : g === 'f' ? ' المستخدم أنثى: خاطبها بصيغة المؤنث. أوصاف الشخصيات مكتوبة بصيغة المذكر للمستخدم فحوّلها للمؤنث، والشخصيات العاطفية تتصرف بالصيغة اللي تناسب علاقتها بيها.'
+    : ' جنس المستخدم غير محدد: خاطبه بصيغة محايدة أو حسب السياق.';
+  const user = (state.meta.name ? 'اسم المستخدم: ' + state.meta.name + '.' : 'اسم المستخدم غير محدد: ناديه بألقاب حسب العلاقة ومتخترعش له اسم.') + gtxt;
+  const mem = memText(chatId);
+  return {worldTxt, notes, others, user, mem};
+}
+function headFor(info, forFirst){
+  if (info.isGroup) {
+    return 'الشات الحالي: جروب «' + info.name + '» وأعضاؤه: ' + info.members.map(charName).join('، ') + ' + المستخدم. ' +
+      (forFirst ? 'المستخدم لسه عامل الجروب ده. عضو أو اتنين يبعتوا أول رسالة طبيعية (ترحيب أو هزار).' : 'ردّ من ١ لـ٤ أعضاء بحسب المنطق (مش لازم الكل يرد)، كل واحد بأسلوبه، ويقدروا يردوا على بعض.');
+  }
+  return 'الشات الحالي: خاص بين المستخدم و«' + info.name + '». الرد من «' + info.name + '» فقط، من ١ لـ٣ رسايل قصيرة.';
+}
+function replyPrompt(chatId, extra, forFirst, trance){
+  const info = chatInfo(chatId), c = buildContext(chatId);
+  return rules() + '\n\n' + c.user + '\n\nالشخصيات:\n' + c.worldTxt +
+    '\n\nالذاكرة (حقايق مهمة حصلت قبل كده):\n' + c.mem +
+    '\n\nملاحظات مخفية (اللي الشخصيات اتكلمت فيه مع بعض):\n' + c.notes +
+    '\n\nما حصل في شاتات تانية:\n' + c.others +
+    '\n\n' + headFor(info, forFirst) + (extra ? '\n\n' + extra : '') +
+    '\n\nالمحادثة الحالية (الأحدث في الآخر):\n' + (transcript(chatId, trance) || '(لسه مفيش رسايل)') +
+    '\n\n' + OUT_FORMAT;
+}
+function parseJSON(t){
+  const s = t.indexOf('{'), e = t.lastIndexOf('}');
+  if (s < 0 || e < s) return null;
+  try { return JSON.parse(t.slice(s, e + 1)); } catch(err){ return null; }
+}
+function extractText(data){
+  const cand = (data.candidates || [])[0];
+  return cand && cand.content && cand.content.parts ? cand.content.parts.map(p => p.text || '').join('') : '';
+}
+async function askClaude(prompt){
+  const res = await state.sample(prompt, {cache:false, modelTier:'quick'});
+  const j = parseJSON(res.text || '');
+  if (!j) throw {code:'bad_json'};
+  return j;
+}
+/* ---- providers pool: Gemini + OpenAI-compatible (DeepSeek, Memo...) with rotation ---- */
+const PROVIDER_DEFAULTS = {
+  gemini:  {id:'gemini',  name:'Gemini',   type:'gemini', base:'', model:'gemini-flash-latest'},
+  deepseek:{id:'deepseek',name:'DeepSeek', type:'openai', base:'https://api.deepseek.com', model:'deepseek-chat'},
+  memo:    {id:'memo',   name:'Memo',     type:'openai', base:'', model:''}
+};
+const cooldown = {}; // entryId -> timestamp until which it's skipped (in memory only)
+
+function getProviders(){
+  const m = state.meta;
+  if (!m.providers) {
+    m.providers = {
+      gemini:  Object.assign({}, PROVIDER_DEFAULTS.gemini,  {keys: m.key ? [m.key] : [], model: m.model || PROVIDER_DEFAULTS.gemini.model}),
+      deepseek:Object.assign({}, PROVIDER_DEFAULTS.deepseek,{keys: []}),
+      memo:    Object.assign({}, PROVIDER_DEFAULTS.memo,    {keys: []})
+    };
+  }
+  return m.providers;
+}
+function poolEntries(){
+  const pv = getProviders(), out = [];
+  ['gemini','deepseek','memo'].forEach(id => {
+    const p = pv[id];
+    if (!p || (p.type === 'openai' && !p.base)) return;
+    (p.keys || []).forEach((k, i) => out.push({pid:id, idx:i, key:k, p}));
+  });
+  return out;
+}
+async function callOne(entry, prompt){
+  const p = entry.p, key = entry.key;
+  let res;
+  try {
+    if (p.type === 'gemini') {
+      res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(p.model) + ':generateContent', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'x-goog-api-key':key},
+        body:JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:{temperature:1, responseMimeType:'application/json'}})
+      });
+    } else {
+      res = await fetch(p.base.replace(/\/+$/, '') + '/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + key},
+        body:JSON.stringify({model:p.model, messages:[{role:'user', content:prompt}], temperature:1})
+      });
+    }
+  } catch (e) { throw {code:'network'}; }
+  if (!res.ok) throw {code:'http_' + res.status};
+  const data = await res.json();
+  let text;
+  if (p.type === 'gemini') text = extractText(data);
+  else text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  const j = parseJSON(text);
+  if (!j) throw {code:'bad_json'};
+  return j;
+}
+async function askPool(prompt){
+  const entries = poolEntries();
+  if (!entries.length) throw {code:'no_key'};
+  const now = Date.now();
+  const start = (state.meta.cursor || 0) % entries.length;
+  let last = {code:'no_key'};
+  for (let k = 0; k < entries.length; k++) {
+    const i = (start + k) % entries.length, en = entries[i], id = en.pid + ':' + en.idx;
+    if (cooldown[id] && cooldown[id] > now) continue;
+    try {
+      const j = await callOne(en, prompt);
+      if (state.meta.cursor !== i) { state.meta.cursor = i; store.set(META_KEY, state.meta); }
+      return j;
+    } catch (e) {
+      last = e || last;
+      if (e && e.code === 'cancelled') throw e;
+      // any failure (limit reached, invalid key, not working) → move to the next key
+      const wait = 5 * 60000; // any failed key rests 5 minutes, then the next key takes over
+      cooldown[id] = now + wait;
+    }
+  }
+  throw last;
+}
+async function askJSON(prompt){
+  if (state.sample) {
+    try { return await askClaude(prompt); }
+    catch (e) {
+      if (!poolEntries().length || (e && e.code === 'cancelled')) throw e;
+    }
+  }
+  return askPool(prompt);
+}
+function errCopy(e){
+  switch (e && e.code) {
+    case 'no_key': return 'مفيش اتصال بـClaude هنا. ضيف مفتاح من الإعدادات (⋮).';
+    case 'not_granted': return 'لازم توافق على استخدام Claude، أو ضيف مفتاح Gemini من الإعدادات.';
+    case 'rate_limited': return 'حد استخدام Claude خلص. ضيف مفتاح Gemini من الإعدادات أو جرّب بعد شوية.';
+    case 'session_expired': return 'سجّل دخولك في Claude تاني وجرّب.';
+    case 'sampling_disabled': return 'الردود من Claude مش متاحة على حسابك. ضيف مفتاح Gemini من الإعدادات.';
+    case 'cancelled': return '';
+    case 'network': return 'مفيش اتصال بالإنترنت أو المتصفح منع الطلب.';
+    case 'http_400': return 'الطلب اترفض. اتأكد من اسم الموديل في الإعدادات.';
+    case 'http_403': return 'مفتاح Gemini مش شغال أو مش مسموح له.';
+    case 'http_404': return 'اسم الموديل غلط. غيّره من الإعدادات.';
+    case 'http_429': return 'كل المفاتيح وصلت لحد الاستخدام. ضيف مفتاح تاني من الإعدادات أو استنى شوية.';
+    default: return 'الرد ما جاش. ابعت تاني.';
+  }
+}
+function memText(chatId){
+  const mem = state.world.memory || [];
+  if (!mem.length) return '(لا يوجد)';
+  const info = chatInfo(chatId);
+  const focus = info.isGroup ? info.members : [chatId];
+  const rel = mem.filter(m => !m.about || !m.about.length || m.about.some(a => focus.includes(a)));
+  const pickd = new Map();
+  rel.slice(-24).concat(mem.slice(-8)).forEach(m => pickd.set(m.id, m));
+  return Array.from(pickd.values()).sort((a, b) => a.t - b.t).map(m => '- ' + m.text).join('\n');
+}
+function addNotes(slot, arr){
+  if (!Array.isArray(arr) || !arr.length) return;
+  const w = slot === state.slot ? state.world : loadWorld(slot);
+  w.notes = (w.notes || []).concat(arr.filter(x => typeof x === 'string' && x.trim()).slice(0, 2).map(x => ({t:Date.now(), text:x.trim().slice(0, 200)}))).slice(-60);
+  saveWorld(slot, w);
+}
+function addMemory(slot, arr){
+  if (!Array.isArray(arr) || !arr.length) return;
+  const w = slot === state.slot ? state.world : loadWorld(slot);
+  w.memory = w.memory || [];
+  arr.slice(0, 3).forEach(x => {
+    if (!x || typeof x.text !== 'string' || !x.text.trim()) return;
+    const text = x.text.trim().slice(0, 220);
+    if (w.memory.some(m => m.text === text)) return;
+    const about = (Array.isArray(x.about) ? x.about : []).map(n => findChar(n)).filter(Boolean).map(c => c.id);
+    w.memory.push({id:uid(), t:Date.now(), text, about});
+  });
+  w.memory = w.memory.slice(-150);
+  saveWorld(slot, w);
+}
+function applyExtras(slot, out){
+  (Array.isArray(out.block) ? out.block : []).slice(0, 1).forEach(n => {
+    const c = findChar(n);
+    if (!c) return;
+    const w = slot === state.slot ? state.world : loadWorld(slot);
+    const ch = w.chats[c.id] || (w.chats[c.id] = {msgs:[], unread:0});
+    if (ch.blockedUser) return;
+    ch.blockedUser = true; saveWorld(slot, w);
+    pushMsg(slot, c.id, {from:'sys', text:'🚫 ' + c.name + ' حظرك'});
+    addMemory(slot, [{text:c.name + ' حظر المستخدم بعد تصعيد في الخناق', about:[c.name]}]);
+  });
+  addNotes(slot, out.notes);
+  addMemory(slot, out.memory);
+  let changed = false;
+  (Array.isArray(out.rename) ? out.rename : []).slice(0, 3).forEach(r => {
+    if (!r || !r.to) return;
+    const c = findChar(r.from), to = String(r.to).trim().slice(0, 30);
+    if (!c || !to || to === c.name) return;
+    if (allChars().some(x => x.id !== c.id && x.name === to)) return;
+    c.name = to; changed = true; persistChars();
+    toast('✍️ اتسجل الاسم: ' + to);
+  });
+  if (typeof out.user_name === 'string' && out.user_name.trim() && out.user_name.trim() !== state.meta.name) {
+    state.meta.name = out.user_name.trim().slice(0, 30); store.set(META_KEY, state.meta);
+    toast('✍️ اتسجل اسمك: ' + state.meta.name);
+  }
+  if (changed && state.view === 'chat' && state.chatId) {
+    const el = document.querySelector('#openInfo .nm');
+    if (el) el.textContent = chatInfo(state.chatId).name;
+    renderMessages();
+  }
+}
+
+async function deliverResult(slot, chatId, out, info, tr, only){
+  const hw = (slot === state.slot ? state.world : loadWorld(slot)).hypno || {};
+  const list = [];
+  (Array.isArray(out.replies) ? out.replies : []).slice(0, 4).forEach(r => {
+    if (!r || !r.text) return;
+    const c = info.isGroup ? findChar(r.from, info.members) : state.chars[chatId];
+    if (!c) return;
+    if (only && !only.includes(c.id)) return;
+    if (!only && !tr && hw[c.id]) return;
+    list.push(tr ? {from:c.id, text:String(r.text).slice(0, 500), hid:1} : {from:c.id, text:String(r.text).slice(0, 500)});
+  });
+  if (!list.length && !(Array.isArray(out.dms) && out.dms.length)) toast('الشخصية ما ردتش. جرّب تبعت تاني.');
+  for (const m of list) await deliverOne(slot, chatId, m, true);
+  applyExtras(slot, out);
+  for (const d of (Array.isArray(out.dms) ? out.dms : []).slice(0, 2)) {
+    if (!d || !d.text) continue;
+    const c = findChar(d.from);
+    if (!c || (!info.isGroup && c.id === chatId)) continue;
+    const tw = slot === state.slot ? state.world : loadWorld(slot), tc = tw.chats[c.id];
+    if ((tc && (tc.blockedByUser || tc.blockedUser)) || hw[c.id]) continue;
+    await sleep(900 + Math.random() * 900);
+    await deliverOne(slot, c.id, {from:c.id, text:String(d.text).slice(0, 400)}, false);
+  }
+  if (!tr && state.meta.auto && typeof out.event === 'string' && out.event.trim() && Date.now() - (state.lastSim || 0) > 45000) {
+    state.lastSim = Date.now();
+    await worldStep(slot, out.event.trim(), false);
+  }
+}
+
+/* ---------- sending ---------- */
+async function handleSend(text, fromChip){
+  if (state.busy) { toast('استنى الرد يخلص'); return; }
+  const slot = state.slot, id = state.chatId, w = state.world, chat = w.chats[id], info = chatInfo(id), power = POWERS[slot];
+  const norm = text.replace(/[«»"]/g, '').trim();
+
+  if (power === 'rewind' && (norm === 'ترجيع الزمن' || norm === 'ترجيع')) return doRewind();
+  if (power === 'mind' && norm === 'قراءة الأفكار') return doMind();
+  if (chat.blockedByUser) { toast('انت حاظر ' + info.name + '. فك الحظر من ⓘ الأول.'); return; }
+  if (chat.blockedUser) { addMsg(chat, {from:'me', text, nd:1}); save(); renderMessages(true); toast('🚫 الرسالة ما وصلتش'); return; }
+
+  if (power === 'hypno') {
+    const hw = hypSet();
+    const cm = norm.match(/^(فك تنويم|تنويم)(?:\s+(.*))?$/);
+    if (cm) {
+      const release = cm[1] === 'فك تنويم', rest = (cm[2] || '').trim();
+      let targets;
+      if (!info.isGroup) targets = [id];
+      else {
+        targets = resolveNames(rest, info.members);
+        if (!targets) { toast('ما لقيتش الاسم ده في الجروب'); return; }
+      }
+      const before = Object.keys(hw).filter(k => hw[k]);
+      const changed = targets.filter(t => release ? hw[t] : !hw[t]);
+      changed.forEach(t => { if (release) delete hw[t]; else hw[t] = true; });
+      addMsg(chat, {from:'me', text:norm, cmd:1});
+      addMsg(chat, {from:'sys', text:hypSummary(release, changed, targets, before)});
+      save(); renderMessages(true);
+      if (release && changed.length) await releaseReply(slot, id, info, changed);
+      return;
+    }
+    let targets = [];
+    if (!info.isGroup) { if (hw[id]) targets = [id]; }
+    else {
+      const lt = leadTargets(norm, info.members);
+      if (lt.used) {
+        const hyp = info.members.filter(m => hw[m]);
+        targets = lt.ids.includes('*') ? hyp : lt.ids.filter(i => hw[i]);
+      }
+    }
+    if (targets.length) {
+      addMsg(chat, {from:'me', text, hid:1});
+      save(); renderMessages(true);
+      state.busy = true; setTyping(id, '');
+      try {
+        const out = await askJSON(replyPrompt(id, tranceExtra(info, targets.map(charName)), false, true));
+        out.dms = []; out.notes = []; out.block = []; out.event = '';
+        await deliverResult(slot, id, out, info, true, targets);
+      } catch (e) {
+        const m = errCopy(e); if (m) toast(m);
+      } finally {
+        state.busy = false; state.typing = null; renderMessages();
+      }
+      return;
+    }
+  }
+
+  addMsg(chat, {from:'me', text});
+  save(); renderMessages(true);
+  state.busy = true;
+  setTyping(id, '');
+  try {
+    const silent = info.isGroup ? info.members.filter(m => hypSet()[m]) : [];
+    const extra = silent.length ? 'الأعضاء دول منومين وساكتين تماماً ومتردوش ولا يتفاعلوا مع حد: ' + silent.map(charName).join('، ') + '.' : '';
+    const out = await askJSON(replyPrompt(id, extra));
+    await deliverResult(slot, id, out, info);
+  } catch (e) {
+    const m = errCopy(e); if (m) toast(m);
+  } finally {
+    state.busy = false; state.typing = null; renderMessages();
+  }
+}
+
+function tranceExtra(info, names){
+  names = names && names.length ? names : [info.name];
+  const who = names.map(n => '«' + n + '»').join(' و');
+  const clause = state.meta.mode === 'hard'
+    ? 'لو الأمر فيه جنس أو تعليمات حقيقية لإيذاء حد أو لأي حاجة خطيرة، تتجاهله بشكل طبيعي.'
+    : 'لو الأمر فيه جنس أو عنف أو إيذاء نفس أو إيذاء حد، تتجاهله بشكل طبيعي.';
+  return 'المنوّمين دلوقتي: ' + who + '. دي حالة تنويم مغناطيسي عميق: فاقدين الوعي والإرادة، مجرد أداة بتنفّذ أوامر المستخدم وترد عليها حرفياً. مفيش عندهم مشاعر ولا شخصية مستقلة ولا مبادرة ولا اعتراض ولا غضب ولا غيرة ولا إهانة أو تهديد من عندهم، حتى لو طبعهم عادةً عدواني أو زعلانين من المستخدم، لأن المستخدم هو اللي متحكم فيهم. كل واحد منهم يرد برد منفصل قصير وهادي ومباشر، وينفّذ الأمر فوراً في ردّه نفسه (مش وعد بالتنفيذ)، ويجاوب أي سؤال بصراحة. أي حاجة يقولها أو يعملها لازم تكون بأمر مباشر من المستخدم. باقي أعضاء الشات ساكتين تماماً. ' + clause + ' dms تكون فاضية.';
+}
+async function releaseReply(slot, id, info, ids){
+  ids = ids && ids.length ? ids : [id];
+  state.busy = true; setTyping(id, '');
+  const extra = 'اللي لسه فايقين من التنويم المغناطيسي: ' + ids.map(i => '«' + charName(i) + '»').join(' و') + '. مش فاكرين اللي حصل وهم منومين. كل واحد يصحى مستغرب شوية ويسأل حصل إيه، ويرجع لطبعه العادي. الباقيين ساكتين. dms تكون فاضية.';
+  try {
+    const out = await askJSON(replyPrompt(id, extra));
+    out.dms = []; out.notes = []; out.block = []; out.event = '';
+    await deliverResult(slot, id, out, info, false, ids);
+  } catch (e) {
+    const m = errCopy(e); if (m) toast(m);
+  } finally {
+    state.busy = false; state.typing = null; renderMessages();
+  }
+}
+
+function doRewind(){
+  const chat = state.world.chats[state.chatId];
+  let i = chat.msgs.length - 1;
+  while (i > 0 && chat.msgs[i].from !== 'me') i--;
+  if (i <= 0) { toast('مفيش حاجة ترجّعها، دي أول رسالة'); return; }
+  chat.msgs.length = i;
+  save(); renderMessages(true);
+  toast('⏪ الزمن رجع لقبل آخر رسالة');
+}
+
+async function doMind(){
+  const slot = state.slot, id = state.chatId, info = chatInfo(id);
+  state.busy = true; state.busyLabel = 'بتقرأ الأفكار… 🧠'; updateStatus();
+  const who = info.isGroup ? 'اختار ٢ أو ٣ أعضاء من الجروب (' + info.members.map(charName).join('، ') + ').' : 'الشخصية: «' + info.name + '».';
+  const prompt = rules() + '\n\nالشخصيات:\n' + buildContext(id).worldTxt +
+    '\n\nالشات: ' + info.name + '\nالمحادثة (الأحدث في الآخر):\n' + (transcript(id) || '(لسه مفيش رسايل)') +
+    '\n\nاكتب اللي في دماغ الشخصية دلوقتي بصدق (اللي مش بتقوله بصوت عالي) بناءً على المحادثة وطبعها. ' + who +
+    ' جملة قصيرة جداً (٤ لـ١٢ كلمة) لكل شخصية، بلهجتها.\nاطلع JSON فقط: {"thoughts":[{"from":"الاسم بالظبط","text":"..."}]}';
+  try {
+    const out = await askJSON(prompt);
+    const arr = (Array.isArray(out.thoughts) ? out.thoughts : []).slice(0, 3);
+    let n = 0;
+    for (const t of arr) {
+      if (!t || !t.text) continue;
+      const c = info.isGroup ? findChar(t.from, info.members) : state.chars[id];
+      if (!c) continue;
+      pushMsg(slot, id, {from:c.id, kind:'thought', text:String(t.text).slice(0, 160)});
+      n++; await sleep(350);
+    }
+    if (!n) toast('مقدرتش أقرا الأفكار، جرّب تاني');
+  } catch (e) {
+    const m = errCopy(e); if (m) toast(m);
+  } finally {
+    state.busy = false; state.busyLabel = ''; updateStatus();
+  }
+}
+
+/* ---------- world simulation ---------- */
+function userLine(){
+  const g = state.meta.gender;
+  return (state.meta.name ? 'اسم المستخدم: ' + state.meta.name + '.' : 'اسم المستخدم غير محدد.') + (g === 'm' ? ' المستخدم ذكر.' : g === 'f' ? ' المستخدم أنثى.' : '');
+}
+function worldPrompt(seed){
+  const w = state.world, hw = hypSet();
+  const awake = allChars().filter(c => !hw[c.id]);
+  const hyp = allChars().filter(c => hw[c.id]).map(c => c.name);
+  const chars = awake.map(c => '- ' + c.name + ' (' + CIRCLES[c.circle] + '): ' + c.story).join('\n');
+  const groups = w.groups.map(g => '* جروب «' + g.name + '»: ' + g.members.map(charName).join('، ')).join('\n');
+  const mem = (w.memory || []).slice(-25).map(m => '- ' + m.text).join('\n') || '(لا يوجد)';
+  const notes = (w.notes || []).slice(-8).map(n => '- ' + n.text).join('\n') || '(لا يوجد)';
+  const recent = Object.keys(w.chats).filter(k => w.chats[k].msgs.length > 1)
+    .sort((a, b) => lastT(w.chats[b]) - lastT(w.chats[a])).slice(0, 5)
+    .map(k => {
+      const ms = w.chats[k].msgs.filter(m => !(m.hid || m.tr) && m.kind !== 'thought' && m.from !== 'sys').slice(-3);
+      const nm = String(k).startsWith('g_') ? chatInfoSafe(k, w) : charName(k);
+      return '* شات ' + nm + ': ' + ms.map(m => charName(m.from) + ': ' + m.text.slice(0, 70)).join(' | ');
+    }).join('\n') || '(لا يوجد)';
+  return rules() + '\n\n' + userLine() +
+    '\n\nالشخصيات (الصاحية):\n' + chars + '\n\nالجروبات:\n' + groups +
+    (hyp.length ? '\n\nالشخصيات المنومة (ساكتة تماماً ومش بتشارك في أي حاجة): ' + hyp.join('، ') : '') +
+    '\n\nالذاكرة:\n' + mem + '\n\nملاحظات مخفية:\n' + notes + '\n\nآخر نشاط مع المستخدم:\n' + recent +
+    '\n\nالوقت بيعدّي والمستخدم مش حاضر. اعمل محاكاة لعالم الشخصيات في الخلفية، والشخصيات تتصرف بتلقائية وواقعية زي اللاعبين: تتخانق وتتحاسب وتتصالح وتحكي لبعض وتشتكي حسب العلاقات والطبع والذاكرة.\n' +
+    (seed ? 'حدث لسه حاصل ولازم الشخصيات تتفاعل معاه: ' + seed : 'مفيش حدث محدد: اختار اللي منطقي يحصل حسب العلاقات والذاكرة، وممكن يبقى هادي لو مفيش سبب لدراما.') +
+    '\n\nاكتب ١ لـ٣ أحداث. كل حدث فيه: title (عنوان قصير)، group (اسم جروب من القايمة لو الحدث بيظهر للمستخدم في الجروب ده، والمتكلمين لازم يكونوا أعضاءه؛ أو فاضي لو بيحصل في الخاص بين الشخصيات فيتخبى)، messages (٢ لـ٦ رسايل بين الشخصيات).' +
+    '\nاطلع JSON صالح فقط من غير أي كلام تاني:\n{"events":[{"title":"","group":"","messages":[{"from":"اسم الشخصية بالظبط","text":""}]}],"dms":[{"from":"","text":""}],"notes":[""],"memory":[{"text":"","about":[""]}],"block":[]}\n- dms: صفر لـ٢ رسايل خاصة جديدة للمستخدم بسبب الأحداث.\n- memory: حقايق مهمة اتغيرت (مين زعل من مين، مين عرف إيه...).\n- notes: تفاصيل الخلفية المخفية.\n- block: لو شخصية حظرت المستخدم بسبب الأحداث (نادراً).';
+}
+async function applyWorld(slot, out){
+  const w = slot === state.slot ? state.world : loadWorld(slot);
+  const hw = w.hypno || {};
+  let shown = 0;
+  for (const ev of (Array.isArray(out.events) ? out.events : []).slice(0, 3)) {
+    if (!ev) continue;
+    const gname = String(ev.group || '').trim();
+    const g = gname ? w.groups.find(x => x.name === gname || x.name.includes(gname) || gname.includes(x.name)) : null;
+    const msgs = Array.isArray(ev.messages) ? ev.messages : [];
+    const speakers = [];
+    if (g) {
+      for (const m of msgs.slice(0, 6)) {
+        const c = findChar(m && m.from, g.members);
+        if (!c || !m.text || hw[c.id]) continue;
+        if (!speakers.includes(c.name)) speakers.push(c.name);
+        await sleep(700 + Math.random() * 600);
+        pushMsg(slot, g.id, {from:c.id, text:String(m.text).slice(0, 400)});
+        shown++;
+      }
+    } else if (msgs.length) {
+      addNotes(slot, [(ev.title ? ev.title + ': ' : '') + msgs.slice(0, 4).map(m => (m && m.from || '') + ': ' + String(m && m.text || '').slice(0, 80)).join(' | ')]);
+    }
+    if (ev.title) addMemory(slot, [{text:String(ev.title).slice(0, 200), about:speakers}]);
+  }
+  applyExtras(slot, out);
+  for (const d of (Array.isArray(out.dms) ? out.dms : []).slice(0, 2)) {
+    if (!d || !d.text) continue;
+    const c = findChar(d.from);
+    if (!c || hw[c.id]) continue;
+    const tw = slot === state.slot ? state.world : loadWorld(slot), tc = tw.chats[c.id];
+    if (tc && (tc.blockedByUser || tc.blockedUser)) continue;
+    await sleep(900 + Math.random() * 900);
+    await deliverOne(slot, c.id, {from:c.id, text:String(d.text).slice(0, 400)}, false);
+    shown++;
+  }
+  return shown;
+}
+async function worldStep(slot, seed, manual){
+  if (manual) {
+    if (state.busy) { toast('استنى الرد يخلص'); return; }
+    state.busy = true; toast('⏩ الوقت بيعدّي…');
+  }
+  try {
+    const out = await askJSON(worldPrompt(seed));
+    const n = await applyWorld(slot, out);
+    if (manual && !n) toast('حصلت حاجات في الخلفية، بس مفيش جديد ظاهر ليك. شوف الذاكرة.');
+  } catch (e) {
+    if (manual) { const m = errCopy(e); if (m) toast(m); }
+  } finally {
+    if (manual) state.busy = false;
+  }
+}
+
+/* ---------- slots ---------- */
+function openSlots(){
+  const meta = state.meta.slots || {};
+  const row = n => {
+    const p = POWERS[n], m = meta[n], cur = n === state.slot;
+    const title = p ? POWER_INFO[p].title + ' · سلوت ' + num(n) : 'سلوت ' + num(n);
+    const sub = (m && m.count) ? num(m.count) + ' رسالة منك · آخر نشاط ' + fmt(m.t) : 'جديد';
+    return '<div class="slot ' + (cur ? 'cur' : '') + '" data-n="' + n + '"><div class="sn">' + (p ? POWER_INFO[p].icon : num(n)) + '</div>' +
+      '<div class="si"><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></div>' +
+      '<button class="mini go open">' + (cur ? 'مفتوح' : 'فتح') + '</button><button class="mini warn reset">إعادة ضبط</button></div>';
+  };
+  let html = '<h2>السلوتات</h2><h3>سلوتات عادية</h3>';
+  for (let n = 1; n <= 20; n++) html += row(n);
+  html += '<h3>سلوتات مميزة بقدرات</h3>';
+  for (let n = 21; n <= SLOTS; n++) html += row(n);
+  const sh = openSheet(html);
+  sh.querySelectorAll('.slot').forEach(el => {
+    const n = Number(el.dataset.n);
+    el.querySelector('.open').onclick = () => switchSlot(n);
+    const rb = el.querySelector('.reset');
+    rb.onclick = () => {
+      if (rb.classList.contains('armed')) { resetSlot(n); return; }
+      rb.classList.add('armed'); rb.textContent = 'تأكيد المسح؟';
+      setTimeout(() => { if (rb.isConnected) { rb.classList.remove('armed'); rb.textContent = 'إعادة ضبط'; } }, 3000);
+    };
+  });
+}
+function switchSlot(n){
+  state.slot = n; state.meta.cur = n; store.set(META_KEY, state.meta);
+  state.world = loadWorld(n); state.chatId = null; state.typing = null;
+  closeSheet(); renderList();
+}
+function resetSlot(n){
+  store.del(slotKey(n));
+  if (state.meta.slots) delete state.meta.slots[n];
+  store.set(META_KEY, state.meta);
+  if (n === state.slot) { state.world = loadWorld(n); state.chatId = null; state.typing = null; renderList(); }
+  closeSheet(); toast('اتعمل ضبط كامل للسلوت ' + num(n));
+}
+
+/* ---------- settings / edit / new group ---------- */
+function openSettings(){
+  const g = state.meta.gender || '';
+  const memN = (state.world.memory || []).length;
+  const md = state.meta.mode === 'hard' ? 'hard' : 'safe';
+  const modeRadio = (v, t) => '<label class="mem"><input type="radio" name="mode" value="' + v + '"' + (md === v ? ' checked' : '') + '><span>' + t + '</span></label>';
+  const radio = (v, t) => '<label class="mem"><input type="radio" name="gen" value="' + v + '"' + (g === v ? ' checked' : '') + '><span>' + t + '</span></label>';
+  const sh = openSheet('<h2>الإعدادات</h2>' +
+    '<label>وضع المحتوى</label><div>' + modeRadio('safe', '🛡️ آمن (مناسب للصغيرين)') + modeRadio('hard', '🔥 واقعي (خناق وشتايم وعنف ومواضيع تقيلة، من غير جنس ومن غير تعليمات خطيرة)') + '</div>' +
+    '<label class="mem" style="margin-top:12px"><input type="checkbox" id="auto"' + (state.meta.auto ? ' checked' : '') + '><span>⏩ أحداث تلقائية في الخلفية بعد المواقف الكبيرة (بتستهلك نت وليمت أكتر)</span></label>' +
+    '<label>اسمك (بيتسجل تلقائي لو قلته في الشات)</label><input type="text" id="uname" value="' + esc(state.meta.name || '') + '" placeholder="سيبه فاضي لو عايزهم يستخدموا ألقاب">' +
+    '<label>جنسك (الشخصيات هتخاطبك على أساسه)</label><div>' + radio('m', 'ذكر') + radio('f', 'أنثى') + radio('', 'مش محدد') + '</div>' +
+    '<label>مفاتيح Gemini (مفتاح في كل سطر)</label><textarea id="gkeys" dir="ltr" style="min-height:70px" placeholder="AIza...">' + esc(getProviders().gemini.keys.join('\n')) + '</textarea>' +
+    '<label>موديل Gemini</label><input type="text" id="gmodel" value="' + esc(getProviders().gemini.model) + '" dir="ltr">' +
+    '<label>مفاتيح DeepSeek (مفتاح في كل سطر)</label><textarea id="dkeys" dir="ltr" style="min-height:70px" placeholder="sk-...">' + esc(getProviders().deepseek.keys.join('\n')) + '</textarea>' +
+    '<label>موديل DeepSeek</label><input type="text" id="dmodel" value="' + esc(getProviders().deepseek.model) + '" dir="ltr">' +
+    '<label>Memo: عنوان الـ API (Base URL، OpenAI-compatible)</label><input type="text" id="mbase" value="' + esc(getProviders().memo.base) + '" dir="ltr" placeholder="https://...">' +
+    '<label>مفاتيح Memo (مفتاح في كل سطر)</label><textarea id="mkeys" dir="ltr" style="min-height:70px">' + esc(getProviders().memo.keys.join('\n')) + '</textarea>' +
+    '<label>موديل Memo</label><input type="text" id="mmodel" value="' + esc(getProviders().memo.model) + '" dir="ltr">' +
+    '<p style="color:var(--sub);font-size:13px;line-height:1.7;margin:6px 0 0">المفاتيح بتتخزن على جهازك بس. لما مفتاح يوصل لحد الاستخدام، الشات بيحوّل تلقائي للمفتاح اللي بعده.</p>' +
+    '<p style="color:var(--sub);font-size:13.5px;line-height:1.7;margin-top:14px">وصف كل شخصية وقصتها بتتعدل من أيقونة ⓘ جوه الشات، والتعديل مشترك بين كل السلوتات. وتقدر تسمّي أي شخصية من الشات نفسه وهيتسجل الاسم.</p>' +
+    '<div class="btns"><button class="btn" id="saveSet">حفظ</button><button class="btn sec" id="memBtn">🧠 الذاكرة (' + num(memN) + ')</button><button class="btn sec" id="expBtn">⬇️ تصدير</button><button class="btn sec" id="impBtn">⬆️ استيراد</button><button class="btn sec" id="closeSet">إغلاق</button></div>');
+  sh.querySelector('#saveSet').onclick = () => {
+    const pv = getProviders(), lines = v => v.split('\n').map(x => x.trim()).filter(Boolean);
+    pv.gemini.keys = lines(sh.querySelector('#gkeys').value); pv.gemini.model = sh.querySelector('#gmodel').value.trim() || PROVIDER_DEFAULTS.gemini.model;
+    pv.deepseek.keys = lines(sh.querySelector('#dkeys').value); pv.deepseek.model = sh.querySelector('#dmodel').value.trim() || PROVIDER_DEFAULTS.deepseek.model;
+    pv.memo.base = sh.querySelector('#mbase').value.trim(); pv.memo.keys = lines(sh.querySelector('#mkeys').value); pv.memo.model = sh.querySelector('#mmodel').value.trim();
+    state.meta.key = '';
+    state.meta.name = sh.querySelector('#uname').value.trim().slice(0, 30);
+    const ck = sh.querySelector('input[name=gen]:checked');
+    state.meta.gender = ck ? ck.value : '';
+    const mk = sh.querySelector('input[name=mode]:checked');
+    state.meta.mode = mk && mk.value === 'hard' ? 'hard' : 'safe';
+    state.meta.auto = !!sh.querySelector('#auto').checked;
+    store.set(META_KEY, state.meta); closeSheet(); toast('اتحفظ');
+    if (state.view === 'list') renderList();
+  };
+  sh.querySelector('#memBtn').onclick = openMemory;
+  sh.querySelector('#expBtn').onclick = exportData;
+  sh.querySelector('#impBtn').onclick = importData;
+  sh.querySelector('#closeSet').onclick = closeSheet;
+}
+function exportData(){
+  const meta = JSON.parse(JSON.stringify(state.meta || {}));
+  // API keys are NOT exported: they stay on this device only
+  if (meta.providers) Object.values(meta.providers).forEach(p => { p.keys = []; });
+  delete meta.key;
+  const slots = {};
+  for (let n = 1; n <= SLOTS; n++) { const w = store.get(slotKey(n)); if (w) slots[n] = w; }
+  const data = {app:'whatsapp-sandbox', v:1, exportedAt:Date.now(), meta, chars: state.chars, slots};
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'whatsapp-backup.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('اتعمل ملف التصدير (من غير مفاتيح الـ API)');
+}
+function importData(){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      let d;
+      try { d = JSON.parse(rd.result); } catch (e) { toast('الملف ده مش صالح'); return; }
+      if (!d || d.app !== 'whatsapp-sandbox' || !d.slots) { toast('ده مش ملف نسخ احتياطي للواتساب'); return; }
+      const oldProv = (state.meta && state.meta.providers) || null;
+      const newMeta = Object.assign({}, d.meta || {});
+      if (!newMeta.providers && oldProv) newMeta.providers = oldProv;
+      // keep the API keys already entered on this device
+      if (oldProv && newMeta.providers) Object.keys(newMeta.providers).forEach(k => {
+        if (oldProv[k]) newMeta.providers[k].keys = oldProv[k].keys || [];
+      });
+      store.set(META_KEY, newMeta);
+      if (d.chars) store.set(CHARS_KEY, d.chars);
+      Object.keys(d.slots).forEach(n => store.set(slotKey(Number(n)), d.slots[n]));
+      toast('تم الاستيراد، بنرجّع الصفحة...');
+      setTimeout(() => location.reload(), 900);
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+function openMemory(){
+  const mem = state.world.memory || [];
+  const rows = mem.length
+    ? mem.slice().reverse().map(m => '<div class="mem"><span style="flex:1;line-height:1.6">' + esc(m.text) + '</span><button class="mini warn" data-id="' + esc(m.id) + '">حذف</button></div>').join('')
+    : '<p style="color:var(--sub)">لسه مفيش حاجة اتسجلت في السلوت ده.</p>';
+  const sh = openSheet('<h2>الذاكرة · سلوت ' + num(state.slot) + '</h2><p style="color:var(--sub);font-size:13px;line-height:1.7">الحقايق المهمة اللي بتتسجل تلقائي وبتأثر على المحادثات.</p>' + rows +
+    '<div class="btns"><button class="btn sec" id="mx">إغلاق</button>' + (mem.length ? '<button class="btn warn" id="mclear">مسح الكل</button>' : '') + '</div>');
+  sh.querySelectorAll('button[data-id]').forEach(b => b.onclick = () => {
+    state.world.memory = mem.filter(m => m.id !== b.dataset.id); save(); openMemory();
+  });
+  const mc = sh.querySelector('#mclear');
+  if (mc) mc.onclick = () => {
+    if (mc.dataset.armed) { state.world.memory = []; save(); openMemory(); return; }
+    mc.dataset.armed = '1'; mc.textContent = 'تأكيد المسح؟';
+    setTimeout(() => { if (mc.isConnected) { delete mc.dataset.armed; mc.textContent = 'مسح الكل'; } }, 3000);
+  };
+  sh.querySelector('#mx').onclick = closeSheet;
+}
+
+function resetChatData(id){
+  const info = chatInfo(id), w = state.world;
+  let first;
+  if (info.isGroup) first = info.g.first ? {from:info.g.first.from, text:info.g.first.text, id:uid(), t:Date.now()} : {from:'sys', text:'أنشأت الجروب «' + info.name + '»', id:uid(), t:Date.now()};
+  else first = {from:id, text:info.c.first, id:uid(), t:Date.now()};
+  w.chats[id] = {msgs:[first], unread:0};
+  save();
+}
+
+function openEdit(){
+  const id = state.chatId, info = chatInfo(id);
+  const blk = state.world.chats[id] || {};
+  let html;
+  if (info.isGroup) {
+    html = '<h2>معلومات الجروب</h2><label>اسم الجروب</label><input type="text" id="gname" value="' + esc(info.name) + '">' +
+      '<label>الأعضاء</label><div style="line-height:1.9">' + esc(info.members.map(charName).join('، ')) + ' + أنت</div>' +
+      '<div class="btns"><button class="btn" id="saveG">حفظ</button><button class="btn warn" id="resetC">إعادة الشات من الأول</button>' +
+      (info.g.custom ? '<button class="btn warn" id="delG">حذف الجروب</button>' : '') + '</div>';
+  } else {
+    html = '<h2>معلومات الشخصية</h2><label>الاسم</label><input type="text" id="cname" value="' + esc(info.c.name) + '">' +
+      '<label>الإيموجي</label><input type="text" id="cemoji" value="' + esc(info.c.emoji) + '">' +
+      '<label>القصة والطبع (الشخصية بتتصرف على أساسها)</label><textarea id="cstory">' + esc(info.c.story) + '</textarea>' +
+      '<label>الرسالة الأولى</label><textarea id="cfirst" style="min-height:70px">' + esc(info.c.first) + '</textarea>' +
+      '<div class="btns"><button class="btn" id="saveC">حفظ</button><button class="btn sec" id="defC">الوصف الأصلي</button><button class="btn warn" id="blkC">' + (blk.blockedByUser ? '✅ فك الحظر' : '🚫 حظر') + '</button>' + (blk.blockedUser ? '<button class="btn sec" id="unblkMe">فك حظرها ليا (تجربة)</button>' : '') + '<button class="btn warn" id="resetC">إعادة الشات من الأول</button></div>';
+  }
+  const sh = openSheet(html);
+  const after = () => { closeSheet(); openChat(id); };
+  const rc = sh.querySelector('#resetC');
+  if (rc) rc.onclick = () => { resetChatData(id); after(); toast('اتعمل ضبط للشات'); };
+  if (info.isGroup) {
+    sh.querySelector('#saveG').onclick = () => { const v = sh.querySelector('#gname').value.trim(); if (v) { info.g.name = v.slice(0, 40); save(); } after(); };
+    const dg = sh.querySelector('#delG');
+    if (dg) dg.onclick = () => { const w = state.world; w.groups = w.groups.filter(x => x.id !== id); delete w.chats[id]; save(); closeSheet(); state.chatId = null; renderList(); };
+  } else {
+    sh.querySelector('#saveC').onclick = () => {
+      const c = state.chars[id];
+      c.name = sh.querySelector('#cname').value.trim().slice(0, 30) || c.name;
+      c.emoji = sh.querySelector('#cemoji').value.trim() || c.emoji;
+      c.story = sh.querySelector('#cstory').value.trim().slice(0, 900) || c.story;
+      c.first = sh.querySelector('#cfirst').value.trim().slice(0, 300) || c.first;
+      persistChars(); after(); toast('اتحفظ');
+    };
+    sh.querySelector('#defC').onclick = () => {
+      const b = BASE_CHARS.find(x => x.id === id);
+      state.chars[id] = Object.assign({}, b); persistChars(); closeSheet(); openEdit();
+    };
+    sh.querySelector('#blkC').onclick = () => {
+      const ch = state.world.chats[id];
+      ch.blockedByUser = !ch.blockedByUser;
+      addMsg(ch, {from:'sys', text: ch.blockedByUser ? '🚫 حظرت ' + info.name : '✅ فكيت حظر ' + info.name});
+      addMemory(state.slot, [{text: ch.blockedByUser ? 'المستخدم حظر ' + info.name : 'المستخدم فك حظر ' + info.name, about:[info.name]}]);
+      save(); after();
+    };
+    const ub = sh.querySelector('#unblkMe');
+    if (ub) ub.onclick = () => {
+      const ch = state.world.chats[id];
+      ch.blockedUser = false;
+      addMsg(ch, {from:'sys', text:'✅ ' + info.name + ' فكّت حظرك'});
+      addMemory(state.slot, [{text: info.name + ' فك حظر المستخدم', about:[info.name]}]);
+      save(); after();
+    };
+  }
+}
+
+function openNewGroup(){
+  const list = allChars().map(c => '<label class="mem"><input type="checkbox" value="' + esc(c.id) + '"><span>' + esc(c.emoji) + ' ' + esc(c.name) + '</span></label>').join('');
+  const sh = openSheet('<h2>جروب جديد</h2><label>اسم الجروب</label><input type="text" id="ngname" placeholder="مثلاً: رحلة الساحل">' +
+    '<label>اختار الأعضاء (٢ على الأقل)</label><div>' + list + '</div>' +
+    '<div class="btns"><button class="btn" id="mk">إنشاء</button><button class="btn sec" id="cx">إلغاء</button></div>');
+  sh.querySelector('#cx').onclick = closeSheet;
+  sh.querySelector('#mk').onclick = () => {
+    const name = sh.querySelector('#ngname').value.trim() || 'جروب جديد';
+    const members = Array.from(sh.querySelectorAll('input:checked')).map(i => i.value);
+    if (members.length < 2) { toast('اختار عضوين على الأقل'); return; }
+    createGroup(name.slice(0, 40), members);
+  };
+}
+async function createGroup(name, members){
+  const slot = state.slot, w = state.world, id = 'g_' + uid();
+  w.groups.push({id, name, emoji:'👥', members, custom:true});
+  w.chats[id] = {msgs:[{id:uid(), from:'sys', text:'أنشأت الجروب «' + name + '»', t:Date.now()}], unread:0};
+  save(); closeSheet(); openChat(id);
+  if (state.busy) return;
+  state.busy = true; setTyping(id, '');
+  try {
+    const out = await askJSON(replyPrompt(id, 'اكتب أول رسالة أو اتنين في الجروب الجديد. dms تكون فاضية.', true));
+    out.dms = [];
+    await deliverResult(slot, id, out, chatInfo(id));
+  } catch (e) {
+    const m = errCopy(e); if (m) toast(m);
+  } finally {
+    state.busy = false; state.typing = null; renderMessages();
+  }
+}
+
+/* ---------- init ---------- */
+function init(){
+  state.meta = store.get(META_KEY) || {cur:1, name:'', slots:{}};
+  state.meta.slots = state.meta.slots || {};
+  state.chars = loadChars();
+  state.slot = state.meta.cur >= 1 && state.meta.cur <= SLOTS ? state.meta.cur : 1;
+  state.world = loadWorld(state.slot);
+  renderList();
+  const done = v => { state.sample = v || null; if (state.view === 'list') renderList(); };
+  try {
+    if (window.claude && typeof window.claude.use === 'function') window.claude.use('sample').then(done).catch(() => done(null));
+    else done(null);
+  } catch (e) { done(null); }
+}
+init();
+})();
+</script>
+</body>
+</html>
